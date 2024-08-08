@@ -3,19 +3,22 @@ extends CharacterBody2D
 enum enemy_type { BARREL, TNT, TORCH }
 
 const SPEED = 300.0
+const ATTACK_SPEED = 1.0
 
 @export var type = enemy_type.BARREL
-@onready var _animated_sprite = $AnimatedSprite2D
-
-var _shapeCast: ShapeCast2D = null
+@onready var _sprite2D = $Sprite2D
+@onready var _animation_tree = $AnimationTree
+@onready var _shapeCast = $ShapeCast2D
 
 func _ready():
 	print("%s has TYPE: %s" % [name, type])
-	if type == enemy_type.BARREL:
-		_shapeCast = $ShapeCast2D
+	_shapeCast = $ShapeCast2D
 
 func _physics_process(delta):
-	_animated_sprite.play("idle")
+	
+	## Handle Idle/Movement animations
+	_animation_tree.set("parameters/conditions/isIdle", velocity.length() < 0.01)
+	_animation_tree.set("parameters/conditions/isMoving", velocity.length() > 0.01)
 	
 	if type == enemy_type.BARREL:
 		_barrel_movement()
@@ -23,12 +26,17 @@ func _physics_process(delta):
 		_tnt_movement()
 	elif type == enemy_type.TORCH:
 		_torch_movement()
+		
+	# Do we see the player?
+	if _shapeCast.is_colliding():
+		GodotLogger.info("Detected Player")
 
 	move_and_slide()
 
 func _barrel_movement():
 	if _shapeCast.is_colliding():
-		_animated_sprite.play("alert_to_idle")
+		pass
+		#_animated_sprite.play("alert_to_idle")
 		#for collision in _shapeCast.collision_result:
 			#print("Collided with %s" % collision.collider.name)
 	
